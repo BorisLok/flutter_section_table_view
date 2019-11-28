@@ -65,6 +65,7 @@ class SectionTableView extends StatefulWidget {
   final int sectionCount;
   final RowCountInSectionCallBack numOfRowInSection;
   final CellAtIndexPathCallBack cellAtIndexPath;
+  final reverse;
 
   //section header & divider
   final SectionHeaderCallBack headerInSection;
@@ -112,6 +113,7 @@ class SectionTableView extends StatefulWidget {
     this.enablePullUp: false,
     this.onRefresh,
     this.refreshController,
+    this.reverse = false,
   })  : this.refreshHeaderBuilder = refreshHeaderBuilder ??
             ((BuildContext context, int mode) {
               return new ClassicIndicator(mode: mode);
@@ -191,13 +193,26 @@ class _SectionTableViewState extends State<SectionTableView> {
     }
 
     indexToIndexPathSearch = [];
-    for (int i = 0; i < widget.sectionCount; i++) {
-      if (showSectionHeader) {
-        indexToIndexPathSearch.add(IndexPath(section: i, row: -1));
+    if (widget.reverse) {
+      for (int i = widget.sectionCount - 1; i >= 0; --i) {
+        int rows = widget.numOfRowInSection(i);
+        for (int j = 0; j < rows; j++) {
+          indexToIndexPathSearch.add(IndexPath(section: i, row: j));
+        }
+        if (showSectionHeader) {
+          indexToIndexPathSearch.add(IndexPath(section: i, row: -1));
+        }
       }
-      int rows = widget.numOfRowInSection(i);
-      for (int j = 0; j < rows; j++) {
-        indexToIndexPathSearch.add(IndexPath(section: i, row: j));
+    }
+    else {
+      for (int i = 0; i < widget.sectionCount; i++) {
+        if (showSectionHeader) {
+          indexToIndexPathSearch.add(IndexPath(section: i, row: -1));
+        }
+        int rows = widget.numOfRowInSection(i);
+        for (int j = 0; j < rows; j++) {
+          indexToIndexPathSearch.add(IndexPath(section: i, row: j));
+        }
       }
     }
 
@@ -403,6 +418,7 @@ class _SectionTableViewState extends State<SectionTableView> {
           key: listViewKey,
           physics: AlwaysScrollableScrollPhysics(),
           controller: widget.scrollController,
+          reverse: widget.reverse,
           itemBuilder: (context, index) {
             return _buildCell(context, index);
           });
